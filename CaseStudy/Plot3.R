@@ -12,6 +12,7 @@ head(sourceClass)
 ## Which have seen increases in emissions from 1999–2008? Use the ggplot2 
 ## plotting system to make a plot answer this question.
 
+pmsub<-subset(pmData,fips == "24510") # Baltimore City, Maryland
 pmsubGp2<-pmsub %>% group_by(year,type) %>%   # Group year-wise
   summarize(Total = sum(Emissions,na.rm = TRUE)) # Total emissions
 
@@ -20,7 +21,7 @@ g<-ggplot(pmsubGp2,aes(x=year,y=Total))
 g + geom_bar(stat="identity", fill="steelblue")+
   labs(x = "Year")+
   labs(y = expression("Total "*PM[2.5]* " emissions in tons"))+
-  labs(title = expression("Total Emissions of  "*PM[2.5]* " emissions in tons in US from 1999 - 2008"))+
+  labs(title = expression(paste("Total Emissions of  ",PM[2.5], " emissions in tons in Baltimore City, Maryland from 1999 - 2008")))+
   facet_wrap(.~pmsubGp2$type)+
   theme_bw()
 dev.off() 
