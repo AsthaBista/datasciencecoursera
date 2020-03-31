@@ -1,4 +1,8 @@
 library(dplyr)
+library(ggplot2)
+
+
+
 setwd("C:/Users/Aastha/Desktop/datasciencecoursera/CaseStudy")
 ## Preparing the data
 zippedDat<-unzip("exdata_data_NEI_data.zip")
@@ -50,4 +54,41 @@ dev.off()
 
 ## TRUE. The total emissions have decreased 
 ## from 1999 to 2008 in Baltimore City, Maryland
+
+## ---------------Q.N.3--------------------------------------------
+## Of the four types of sources indicated by the \color{red}{\verb|type|}
+## type (point, nonpoint, onroad, nonroad) variable, which of these four 
+## sources have seen decreases in emissions from 1999–2008 for Baltimore City? 
+## Which have seen increases in emissions from 1999–2008? Use the ggplot2 
+## plotting system to make a plot answer this question.
+
+pmsubGp2<-pmsub %>% group_by(year,type) %>%   # Group year-wise
+  summarize(Total = sum(Emissions,na.rm = TRUE)) # Total emissions
+
+png("Plot3.png")
+g<-ggplot(pmsubGp2,aes(x=year,y=Total))
+g + geom_bar(stat="identity", fill="steelblue")+
+  labs(x = "Year")+
+  labs(y = "Total emissions (tons)")+
+  labs(title = "Total emissions in Baltimore City, Maryland")+
+  facet_wrap(.~pmsubGp2$type)+
+  theme_bw()
+dev.off() 
+
+## Non-road, Nonpoint, and On-road types of sources of pollution
+## saw decrease in emissions from 1990 to 2008
+## Point emissions saw an increase in emissions from 1990 to 2008
+
+
+
+
+
+
+
+
+
+
+
+
+
 
