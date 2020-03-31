@@ -33,3 +33,4 @@ g + geom_line()+
 dev.off() 
 
 ## The coal-related emissions have decreased from 1999 - 2008
+##
