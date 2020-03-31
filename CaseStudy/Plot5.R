@@ -26,7 +26,7 @@ g<-ggplot(motorGp,aes(x=year,y=Total))
 g + geom_line()+
   labs(x = "Year")+
   labs(y =  expression("Total "*PM[2.5]* " emissions in tons") ) +
-  labs(title = expression("Motor vehicles Emissions of  "*PM[2.5]* " emissions in tons in Baltimore City, Maryland from 1999 - 2008"))+
+  ggtitle(expression("Motor vehicles Emissions of  "*PM[2.5]* " in Baltimore City, Maryland from 1999 - 2008"))+
   geom_point(color = "blue",pch = 17, size = 3)+
   theme_bw()
 dev.off() 
