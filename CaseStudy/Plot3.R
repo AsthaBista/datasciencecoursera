@@ -1,3 +1,6 @@
+library(dplyr)
+library(tidyr)
+
 ## Preparing the data
 zippedDat<-unzip("exdata_data_NEI_data.zip")
 pmData<-readRDS("summarySCC_PM25.rds")
