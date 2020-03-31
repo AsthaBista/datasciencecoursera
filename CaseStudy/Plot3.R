@@ -19,8 +19,8 @@ png("Plot3.png")
 g<-ggplot(pmsubGp2,aes(x=year,y=Total))
 g + geom_bar(stat="identity", fill="steelblue")+
   labs(x = "Year")+
-  labs(y = "Total emissions (tons)")+
-  labs(title = "Total emissions in Baltimore City, Maryland")+
+  labs(y = expression("Total "*PM[2.5]* " emissions in tons"))+
+  labs(title = expression("Total Emissions of  "*PM[2.5]* " emissions in tons in US from 1999 - 2008"))+
   facet_wrap(.~pmsubGp2$type)+
   theme_bw()
 dev.off() 
