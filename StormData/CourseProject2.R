@@ -77,16 +77,6 @@ dev.off()
 
 
 
-newData<- c()  
-unique(stormData$EVTYPE)
-names(df)
-
-
-
-
-
-
-
 df1<-stormData
 df1$Year <- sapply(df1$BGN_DATE,function(x){
   (as.POSIXlt(mdy_hms(x))$year + 1900)
@@ -97,6 +87,32 @@ datagroupedbyYear<-df1 %>%
   select(Year,FATALITIES,INJURIES,PROPDMG,CROPDMG) %>%
   group_by(Year) %>%
   summarise_all(sum,na.rm = T)
+ 
+casualitiesgroupedbyYear <- gather(datagroupedbyYear[,1:3],Casualties,Number,-Year)
+economygroupedbyYear <- gather(datagroupedbyYear[,c(1,4,5)],Damages,USD,-Year)
+alldatabyYear <- merge(casualitiesgroupedbyYear,economygroupedbyYear,by = "Year")
+
+
+library(ggpubr)
+
+cs <- ggplot(alldatabyYear,aes(x = Year,y = Number)) +
+  geom_line(aes(color = Casualties),size = 1) +
+  labs(title = "Casualties due to weather events\nacross the United States") +
+  labs(y = "Number of casualties") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  theme(legend.title=element_blank()) 
   
+ec <- ggplot(alldatabyYear,aes(x = Year,y = USD)) +
+  geom_line(aes(color = Damages),size = 1) +
+  labs(title = "Economic consequences due to weather events\nacross the United States")  +
+  labs(y = "U.S. Dollars") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  theme(legend.title=element_blank())
+
+png("Impacts_by_Year.png", height = 400, width = 1000)
+ggarrange(cs, ec, ncol = 2, nrow = 1)
+dev.off()
 
 

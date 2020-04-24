@@ -37,6 +37,8 @@ library(dplyr)
 library(tidyr)
 library(lubridate)
 library(ggplot2)
+library(ggpubr)
+library(knitr)
 ```
 The events in the database have an different combination of random items. Some of them are as follows:
 ```{r}
@@ -96,7 +98,7 @@ A subset consisting property and crop damages information for each event was cre
 ecoDamage <- gather(newData[-6,c(1,4,5)],Type,Damages,-Event)
 ```
 
-```{r,fig.height=4}
+```{r plot2,fig.height=4}
 g <- ggplot(ecoDamage,aes(x = Event,y = Damages, fill = Type))
 g + geom_bar(stat="identity", color="black") +
   scale_fill_manual(values =  c("lightblue","steelblue"),labels=c("Crop Damage", "Property Damage"))+ 
@@ -106,3 +108,52 @@ g + geom_bar(stat="identity", color="black") +
   theme_bw()
 ```
 
+### Impacts of weather events per year
+The impacts that severe weather events can have on population health and economy can be illustrated by comparing the yearly casualties and damages from the events. This was done in a series of steps:
+- Adding a column containing year for the data
+```{r,cache=TRUE}
+df1<-stormData
+df1$Year <- sapply(df1$BGN_DATE,function(x){
+  (as.POSIXlt(mdy_hms(x))$year + 1900)
+})
+```
+- Determining the total number of the casualties and damages per year
+```{r}
+datagroupedbyYear<-df1 %>%
+  select(Year,FATALITIES,INJURIES,PROPDMG,CROPDMG) %>%
+  group_by(Year) %>%
+  summarise_all(sum,na.rm = T)
+```
+- Creating separate subsets of casualties and damages and combining into one dataframe
+```{r}
+# Create subsets per year
+casualitiesgroupedbyYear <- gather(datagroupedbyYear[,1:3],Casualties,Number,-Year)
+economygroupedbyYear <- gather(datagroupedbyYear[,c(1,4,5)],Damages,USD,-Year)
+alldatabyYear <- merge(casualitiesgroupedbyYear,economygroupedbyYear,by = "Year")
+```
+- Plotting the casualties and economic damages 
+```{r plot3,results='hide'}
+cs <- ggplot(alldatabyYear,aes(x = Year,y = Number)) +
+  geom_line(aes(color = Casualties),size = 1) +
+  labs(title = "Casualties due to weather events\nacross the United States") +
+  labs(y = "Number of casualties") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  theme(legend.title=element_blank()) 
+```
+
+```{r plot4,results='hide'}
+ec <- ggplot(alldatabyYear,aes(x = Year,y = USD)) +
+  geom_line(aes(color = Damages),size = 1) +
+  labs(title = "Economic consequences due to weather events\nacross the United States")  +
+  labs(y = "U.S. Dollars") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  theme(legend.title=element_blank())
+```
+
+The impacts of weather events can be accessed by graphically determining casualties and economic damages by year. The figures below show that both casualties and economic damages have increased along time.
+
+```{r plot5,fig.height=4,fig.width=10}
+ggarrange(cs, ec, ncol = 2, nrow = 1)
+```
