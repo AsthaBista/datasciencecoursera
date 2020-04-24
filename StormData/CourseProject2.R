@@ -10,12 +10,12 @@ head(stormData)
 nrow(stormData)
 View(stormData)
 
-if(!file.exists()){
+if(!file.exists("./StormData")){
   download.file(url,"StormData.bz2")
   unzip("StormData.bz2")
 }  
 
-
+stormData<- read.table("StormData.bz2", header = TRUE, sep = ",", stringsAsFactors = FALSE, na.strings="NA")
 
 library(dplyr)
 library(tidyr)
@@ -29,34 +29,19 @@ newData<-df %>%
   mutate(Events = as.character(EVTYPE)) %>%
   ### Selecting certain words from events column and giving a common name in a new column
   mutate(Event = ifelse(grepl("TORNADO", Events),"Tornado",
-                     ifelse(grepl("Thunderstorm|Wind|THUNDERSTORM|WIND|TSTM|HAIL
-                                  |hail|Hail|STORM", Events),"Thunderstorm",
-                            ifelse(grepl("Flood|FLOOD|Drowning|DROWNING|DAM", 
-                                         Events),"Flood",
-                                   ifelse(grepl("Hurricane|HURRICANE", Events),
-                                          "Hurricane",
-                                          ifelse(grepl("Freeze|FREEZE|Cold|COLD|
-                                                       Snow|SNOW|snow|Frost|
-                                                       FROST|ICE|Ice|Icy",
-                                                       Events),"Freezing",
-                                                 ifelse(grepl("RAIN|Rain|
-                                                              Precipitation|
-                                                              PRECIPITATION|
-                                                              Mudslide|MUDSLIDE|
-                                                              Wet|wet|WET", 
+                     ifelse(grepl("Thunderstorm|Wind|THUNDERSTORM|WIND|TSTM|HAIL|hail|Hail|STORM", 
+                                  Events),"Thunderstorm",
+                            ifelse(grepl("Flood|FLOOD|Drowning|DROWNING|DAM",Events),"Flood",
+                                   ifelse(grepl("Hurricane|HURRICANE", Events), "Hurricane",
+                                          ifelse(grepl("Freeze|FREEZE|Cold|COLD|Snow|SNOW|snow|Frost|
+                                                       FROST|ICE|Ice|Icy",Events),"Freezing",
+                                                 ifelse(grepl("RAIN|Rain|Precipitation|PRECIPITATION|
+                                                              Mudslide|MUDSLIDE| Wet|wet|WET", 
                                                               Events),"Rainfall",
-                                                        ifelse(grepl("HEAT|Heat|
-                                                                     DROUGHT|
-                                                                     Drought|
-                                                                     DRY",
-                                                                     Events),
-                                                               "Heat",
-                                                               ifelse(grepl("FIRE|
-                                                                            Fire|
-                                                                            WILD",
-                                                                            Events),
-                                                                      "Fire",
-                                                                      "Other"
+                                                        ifelse(grepl("HEAT|Heat|DROUGHT|Drought|DRY",
+                                                                     Events),"Heat",
+                                                               ifelse(grepl("FIRE|Fire|WILD",Events),
+                                                                      "Fire","Other"
                      ))))))))) %>%
   select(Event,FATALITIES,INJURIES,PROPDMG,CROPDMG)  %>%
   ### Group by events
