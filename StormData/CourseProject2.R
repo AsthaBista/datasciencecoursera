@@ -10,6 +10,13 @@ head(stormData)
 nrow(stormData)
 View(stormData)
 
+if(!file.exists()){
+  download.file(url,"StormData.bz2")
+  unzip("StormData.bz2")
+}  
+
+
+
 library(dplyr)
 library(tidyr)
 library(lubridate)
@@ -22,23 +29,44 @@ newData<-df %>%
   mutate(Events = as.character(EVTYPE)) %>%
   ### Selecting certain words from events column and giving a common name in a new column
   mutate(Event = ifelse(grepl("TORNADO", Events),"Tornado",
-                     ifelse(grepl("Thunderstorm|Wind|THUNDERSTORM|WIND|TSTM|HAIL|hail|Hail|STORM", Events),"Storm",
-                            ifelse(grepl("Flood|FLOOD|Drowning|DROWNING|DAM", Events),"Flood",
-                                   ifelse(grepl("Hurricane|HURRICANE", Events),"Hurricane",
-                                          ifelse(grepl("Freeze|FREEZE|Cold|COLD|Snow|SNOW|snow|Frost|FROST|ICE|Ice|Icy", Events),"Freezing",
-                                                 ifelse(grepl("RAIN|Rain|Precipitation|PRECIPITATION|Mudslide|MUDSLIDE|Wet|wet|WET", Events),"Rainfall",
-                                                        ifelse(grepl("HEAT|Heat|DROUGHT|Drought|DRY|FIRE|Fire", Events),"Heat",
-                                                               ifelse(grepl("FIRE|Fire|WILD", Events),"Heat","Other"
+                     ifelse(grepl("Thunderstorm|Wind|THUNDERSTORM|WIND|TSTM|HAIL
+                                  |hail|Hail|STORM", Events),"Thunderstorm",
+                            ifelse(grepl("Flood|FLOOD|Drowning|DROWNING|DAM", 
+                                         Events),"Flood",
+                                   ifelse(grepl("Hurricane|HURRICANE", Events),
+                                          "Hurricane",
+                                          ifelse(grepl("Freeze|FREEZE|Cold|COLD|
+                                                       Snow|SNOW|snow|Frost|
+                                                       FROST|ICE|Ice|Icy",
+                                                       Events),"Freezing",
+                                                 ifelse(grepl("RAIN|Rain|
+                                                              Precipitation|
+                                                              PRECIPITATION|
+                                                              Mudslide|MUDSLIDE|
+                                                              Wet|wet|WET", 
+                                                              Events),"Rainfall",
+                                                        ifelse(grepl("HEAT|Heat|
+                                                                     DROUGHT|
+                                                                     Drought|
+                                                                     DRY",
+                                                                     Events),
+                                                               "Heat",
+                                                               ifelse(grepl("FIRE|
+                                                                            Fire|
+                                                                            WILD",
+                                                                            Events),
+                                                                      "Fire",
+                                                                      "Other"
                      ))))))))) %>%
-  select(Event,FATALITIES,INJURIES,PROPDMG)  %>%
+  select(Event,FATALITIES,INJURIES,PROPDMG,CROPDMG)  %>%
   ### Group by events
   group_by(Event)  %>%  
   ### Take sum of all fatalities, injuries and property damage for each event
   summarise(Fatalities = sum(FATALITIES,na.rm = T),Injuries = sum(INJURIES,na.rm = T),
-            Property_Damage = sum(PROPDMG,na.rm = T))
+            Property_Damage = sum(PROPDMG,na.rm = T),Crop_Damage = sum(CROPDMG,na.rm = T))
 
 ### Create a subset containing only data related to population health
-popHealth <- gather(newData[-5,1:3],Type,Casualties,-Event)
+popHealth <- gather(newData[-6,1:3],Type,Casualties,-Event)
 
 ### Plot a bargraph of casualties due to events in the US
 png("PopHealth_per_Event.png", height = 400)
@@ -50,12 +78,15 @@ g + geom_bar(stat="identity", color="black") +
 dev.off()
 
 ### Plot a bargraph of property damage in the US
-ecoDamage <- newData[-5,c(1,4)]
+ecoDamage <- gather(newData[-6,c(1,4,5)],Type,Damages,-Event)
+
 png("EcoConsq_per_Event.png", height = 400)
-g <- ggplot(ecoDamage,aes(x = Event,y = Property_Damage))
-g + geom_bar(stat="identity", fill="steelblue") + 
-  labs(y = "Property Damage in US Dollars") +
-  labs(title = "Economic consequences due to different events in the United States") +
+g <- ggplot(ecoDamage,aes(x = Event,y = Damages, fill = Type))
+g + geom_bar(stat="identity", color="black") +
+  scale_fill_manual(values =  c("lightblue","steelblue"),labels=c("Crop Damage", "Property Damage"))+ 
+  labs(y = "US Dollars") +
+  labs(title = "Economic consequences due to different events\nin the United States") +
+  theme(axis.title.x=element_text(hjust = 0.5,vjust = 0.5,angle = 45))+
   theme_bw()
 dev.off()
 
@@ -71,20 +102,16 @@ names(df)
 
 
 
-
-
-
-as.POSIXlt(mdy_hms(stormData$BGN_DATE[1]))+(a$hour*60)+a$min
-a = as.POSIXlt(strptime(as.character(stormData$BGN_TIME[1]),format = "%H%M"))
-a$min
-
-newData<-stormData %>%
-  mutate(Time = as.POSIXlt(strptime(as.character(stormData$BGN_TIME),format = "%H%M"))) %>%
-  mutate(Date = as.POSIXlt(mdy_hms(BGN_DATE)) + (Time$hour*60) + (Time$min)) %>%
-  select(Date,EVTYPE,FATALITIES,INJURIES)
-
-df<-stormData
-df$Time <- sapply(df$BGN_TIME,function(x){
-  as.POSIXlt(strptime(as.character(df$BGN_TIME),format = "%H%M"))
+df1<-stormData
+df1$Year <- sapply(df1$BGN_DATE,function(x){
+  (as.POSIXlt(mdy_hms(x))$year + 1900)
 })
+
+
+datagroupedbyYear<-df1 %>%
+  select(Year,FATALITIES,INJURIES,PROPDMG,CROPDMG) %>%
+  group_by(Year) %>%
+  summarise_all(sum,na.rm = T)
   
+
+
