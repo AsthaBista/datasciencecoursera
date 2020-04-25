@@ -1,8 +1,0 @@
-base
-dplyr
-tidyr
-lubridate
-ggplot2
-magrittr
-ggpubr
-knitr
